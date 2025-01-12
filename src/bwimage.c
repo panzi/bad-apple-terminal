@@ -74,7 +74,7 @@ static inline void bwimage_set_color_rle(uint8_t *data, size_t pixel_index, size
     if (bit_index) {
         uint8_t byte = data[byte_index];
         uint8_t bit_mask = 0xFF >> bit_index;
-        data[byte_index] = (byte & bit_mask) | (value & ~bit_mask);
+        data[byte_index] = (byte & ~bit_mask) | (value & bit_mask);
         byte_index += 1;
     }
 
@@ -86,7 +86,7 @@ static inline void bwimage_set_color_rle(uint8_t *data, size_t pixel_index, size
         // FIXME: might be in same byte than start!!
         uint8_t byte = data[byte_end_index];
         uint8_t bit_mask = 0xFF >> bit_end_index;
-        data[byte_end_index] = (byte & ~bit_mask) | (value & bit_mask);
+        data[byte_end_index] = (byte & bit_mask) | (value & ~bit_mask);
     }
 }
 
@@ -141,7 +141,7 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
                 if (bit_index) {
                     uint8_t byte = frame_data[byte_index];
                     uint8_t bit_mask = 0xFF >> bit_index;
-                    frame_data[byte_index] = (byte & bit_mask) | (~byte & ~bit_mask);
+                    frame_data[byte_index] = (byte & ~bit_mask) | (~byte & bit_mask);
                     byte_index += 1;
                 }
 
@@ -152,7 +152,7 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
                 if (bit_end_index) {
                     uint8_t byte = frame_data[byte_end_index];
                     uint8_t bit_mask = 0xFF >> bit_end_index;
-                    frame_data[byte_end_index] = (byte & ~bit_mask) | (~byte & bit_mask);
+                    frame_data[byte_end_index] = (byte & bit_mask) | (~byte & ~bit_mask);
                 }
                 break;
             }
@@ -210,24 +210,24 @@ void bwimage_render_ansi_full(const struct BWImage *frame) {
         }
         for (uint32_t x = 0; x < width; x += 2) {
             uint32_t x2 = x + 1;
-            uint32_t pattern_bits = (uint32_t)bwimage_get_pixel(frame, x, y) << 5;
+            uint32_t pattern_bits = (uint32_t)bwimage_get_pixel(frame, x, y);
 
             if (x2 < width) {
-                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y) << 4;
+                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y) << 1;
             }
 
             if (y2 < height) {
-                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y2) << 3;
+                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y2) << 2;
 
                 if (x2 < width) {
-                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y2) << 2;
+                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y2) << 3;
                 }
 
                 if (y3 < height) {
-                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y3) << 1;
+                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y3) << 4;
 
                     if (x2 < width) {
-                        pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y3);
+                        pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y3) << 5;
                     }
                 }
             }
@@ -239,23 +239,22 @@ void bwimage_render_ansi_full(const struct BWImage *frame) {
     }
     printf("\x1B[0m");
 }
-#endif
-
-#if 0
+#else
 void bwimage_render_ansi_full(const struct BWImage *frame) {
     uint32_t width = frame->width;
     uint32_t height = frame->height;
+    unsigned int line_len = (unsigned int)width * 2;
 
     printf("\x1B[38;2;255;255;255m\x1B[48;2;0;0;0m");
     for (uint32_t y = 0; y < height; ++ y) {
         if (y > 0) {
-            printf("\x1B[%uD\x1B[1B", width);
+            printf("\x1B[%uD\x1B[1B", line_len);
         }
         for (uint32_t x = 0; x < width; ++ x) {
             if (bwimage_get_pixel(frame, x, y)) {
-                printf("█");
+                printf("██");
             } else {
-                printf(" ");
+                printf("  ");
             }
         }
     }

@@ -72,7 +72,7 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
                 raise ValueError(f"frame_width: {frame_width}, frame_height: {frame_height} != width: {width}, height: {height}")
 
             frame: list[bool] = [
-                value >= 127
+                value >= 64
                 for value in img.convert('L').getdata()
             ]
 

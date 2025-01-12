@@ -128,7 +128,7 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
                         else:
                             encode_rle(FLIP, flip_len, frame_bytes)
                             index += flip_len
-            #prev_frame = frame # TODO
+            prev_frame = frame
 
             fmt_frame_bytes = ', '.join(f'0x{byte:02x}' for byte in frame_bytes)
             fp.write(f'''\

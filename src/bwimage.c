@@ -158,7 +158,7 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
                     }
 
                     for (size_t index = byte_index; index < byte_end_index; ++ index) {
-                        frame_data[byte_index] = ~frame_data[byte_index];
+                        frame_data[index] = ~frame_data[index];
                     }
 
                     if (bit_end_index) {

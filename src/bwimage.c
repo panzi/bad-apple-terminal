@@ -106,8 +106,8 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
     size_t pixel_index = 0;
     size_t pixel_size = frame->width * frame->height;
     uint8_t *frame_data = frame->data;
+    struct ComprCmd cmd = { .type = ComprCmd_Skip, .length = 0 };
     for (size_t compr_index = 0; compr_index < compr_size;) {
-        struct ComprCmd cmd;
         size_t rem_compr_size = compr_size - compr_index;
         size_t compr_len = compr_cmd_decode(compr_data + compr_index, rem_compr_size, &cmd);
         if (compr_len > rem_compr_size) {

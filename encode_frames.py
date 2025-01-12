@@ -59,8 +59,8 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
         #width = 480
         #height = 360
         fps = 30.0003
-        #frame_count = 6572
-        frame_count = 256
+        frame_count = 6572
+        #frame_count = 256
         prev_frame: Optional[list[bool]] = None
         frame_len = width * height
         for nr in range(1, frame_count + 1):

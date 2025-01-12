@@ -1,0 +1,7 @@
+/tmp
+/build
+perf.data
+perf.data.old
+.*
+!.gitignore
+!.github

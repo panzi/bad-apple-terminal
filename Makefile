@@ -15,7 +15,7 @@ else
 	BUILD_DIR = $(BUILD_PREFIX)/release
 endif
 
-.PHONY: all clean frames run clean-all
+.PHONY: all clean frames run clean-all test-rle-encoding
 
 all: $(BIN)
 
@@ -24,8 +24,20 @@ frames: $(BUILD_PREFIX)/frames/frame0001.png
 run: $(BIN)
 	$(BIN)
 
+test-rle-encoding: $(BUILD_DIR)/test_rle_encoding
+	$(BUILD_DIR)/test_rle_encoding
+
+$(BUILD_DIR)/test_rle_encoding: $(BUILD_DIR)/test_rle_encoding.o $(BUILD_DIR)/bwimage.o
+	$(CC) $(CFLAGS) -o $@ $^
+
 $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) -o $@ $^
+
+$(BUILD_DIR)/test_rle_encoding.o: $(BUILD_PREFIX)/test_rle_encoding.c src/bad-apple.h
+	$(CC) $(CFLAGS) -Isrc -c -o $@ $<
+
+$(BUILD_PREFIX)/test_rle_encoding.c: test_rle_encoding.py
+	./test_rle_encoding.py
 
 $(BUILD_DIR)/frames.o: $(BUILD_PREFIX)/frames.c src/bad-apple.h
 	$(CC) $(CFLAGS) -Isrc -c -o $@ $<
@@ -44,7 +56,11 @@ $(BUILD_PREFIX)/bad-apple.webm:
 	yt-dlp "https://www.youtube.com/watch?v=FtutLA63Cp8" --output build/bad-apple.webm
 
 clean:
-	rm -v $(OBJ) $(BIN)
+	rm -v $(OBJ) $(BIN) $(BUILD_DIR)/test_rle_encoding.o
 
 clean-all:
-	rm -v $(OBJ) $(BIN) $(BUILD_PREFIX)/bad-apple.webm $(wildcard $(BUILD_PREFIX)/frames/frame*.png)
+	rm -v $(OBJ) $(BIN) \
+		$(BUILD_PREFIX)/test_rle_encoding.c \
+		$(BUILD_PREFIX)/frames.c \
+		$(BUILD_PREFIX)/bad-apple.webm \
+		$(wildcard $(BUILD_PREFIX)/frames/frame*.png)

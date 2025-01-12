@@ -16,7 +16,7 @@ struct BWImage bwimage_new(int32_t width, int32_t height) {
 
 void bwimage_free(struct BWImage *image) {
     free(image->data);
-    image->data = 0;
+    image->data = NULL;
     image->width = 0;
     image->height = 0;
 }
@@ -35,7 +35,7 @@ size_t compr_cmd_decode(const uint8_t *data, size_t size, struct ComprCmd *cmd) 
 
     uint8_t byte = data[0];
     enum ComprCmdType type = byte >> 6;
-    uint32_t length = 1 + (byte & 0x1F);
+    uint32_t length = byte & 0x1F;
 
     size_t index = 1;
     if (byte & 0x20) {
@@ -55,6 +55,8 @@ size_t compr_cmd_decode(const uint8_t *data, size_t size, struct ComprCmd *cmd) 
             index += 1;
         } while (byte & 0x80);
     }
+
+    length += 1;
 
     if (cmd != NULL) {
         cmd->type = type;
@@ -107,8 +109,8 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
     for (size_t compr_index = 0; compr_index < compr_size;) {
         struct ComprCmd cmd;
         size_t rem_compr_size = compr_size - compr_index;
-        size_t cmd_len = compr_cmd_decode(compr_data + compr_index, rem_compr_size, &cmd);
-        if (cmd_len > rem_compr_size) {
+        size_t compr_len = compr_cmd_decode(compr_data + compr_index, rem_compr_size, &cmd);
+        if (compr_len > rem_compr_size) {
             return false;
         }
 
@@ -172,7 +174,7 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
         }
 
         pixel_index = pixel_end_index;
-        compr_index += cmd_len;
+        compr_index += compr_len;
     }
 
     return true;

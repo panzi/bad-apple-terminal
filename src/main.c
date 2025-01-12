@@ -58,6 +58,7 @@ int main(int argc, char *argv[]) {
     int status = 0;
 
     fprintf(stderr, "bad_apple_frames: 0x%zx\n", (uintptr_t)bad_apple_frames);
+    fprintf(stderr, "bad_apple_frame_count: %zu\n", bad_apple_frame_count);
     fprintf(stderr, "bad_apple_width: %u\n", bad_apple_width);
     fprintf(stderr, "bad_apple_height: %u\n", bad_apple_height);
     fprintf(stderr, "bad_apple_fps: %lf\n", bad_apple_fps);
@@ -173,7 +174,7 @@ int main(int argc, char *argv[]) {
 
         struct timespec rem_duration = timespec_sub(frame_duration, timespec_sub(frame_end_ts, frame_start_ts));
 
-        if (nanosleep(&rem_duration, NULL) != 0) {
+        if (rem_duration.tv_sec >= 0 && nanosleep(&rem_duration, NULL) != 0) {
             perror("nanosleep(&rem_duration, NULL)");
             goto error;
         }

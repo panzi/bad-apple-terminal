@@ -69,7 +69,7 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
             img = PIL.Image.open(filename)
             frame_width, frame_height = img.size
             if frame_width != width or frame_height != height:
-                raise ValueError(f"frame_width: {frame_width}, frame_height: {frame_height}, width: {width}, height: {height}")
+                raise ValueError(f"frame_width: {frame_width}, frame_height: {frame_height} != width: {width}, height: {height}")
 
             frame: list[bool] = [
                 value >= 127

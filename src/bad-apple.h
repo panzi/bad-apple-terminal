@@ -34,7 +34,7 @@ void bwimage_free(struct BWImage *image);
 void bwimage_copy_from(struct BWImage *image, const struct BWImage *other);
 
 static inline bool bwimage_get_pixel(const struct BWImage *image, uint32_t x, uint32_t y) {
-    assert((x) < image->width && (y) < image->height);
+    assert(x < image->width && y < image->height);
 
     size_t pixel_index = (size_t)y * (size_t)image->width + (size_t)x;
     uint32_t bit_index = pixel_index & 7;

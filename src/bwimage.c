@@ -71,22 +71,27 @@ static inline void bwimage_set_color_rle(uint8_t *data, size_t pixel_index, size
     size_t byte_end_index = pixel_end_index >> 3;
     size_t bit_end_index = pixel_end_index & 7;
 
-    if (bit_index) {
+    if (byte_index == byte_end_index) {
         uint8_t byte = data[byte_index];
-        uint8_t bit_mask = 0xFF >> bit_index;
+        uint8_t bit_mask = (0xFF >> bit_index) & ~(0xFF >> bit_end_index);
         data[byte_index] = (byte & ~bit_mask) | (value & bit_mask);
-        byte_index += 1;
-    }
+    } else {
+        if (bit_index) {
+            uint8_t byte = data[byte_index];
+            uint8_t bit_mask = 0xFF >> bit_index;
+            data[byte_index] = (byte & ~bit_mask) | (value & bit_mask);
+            byte_index += 1;
+        }
 
-    if (byte_end_index > byte_index) {
-        memset(data + byte_index, value, byte_end_index - byte_index);
-    }
+        if (byte_end_index > byte_index) {
+            memset(data + byte_index, value, byte_end_index - byte_index);
+        }
 
-    if (bit_end_index) {
-        // FIXME: might be in same byte than start!!
-        uint8_t byte = data[byte_end_index];
-        uint8_t bit_mask = 0xFF >> bit_end_index;
-        data[byte_end_index] = (byte & bit_mask) | (value & ~bit_mask);
+        if (bit_end_index) {
+            uint8_t byte = data[byte_end_index];
+            uint8_t bit_mask = 0xFF >> bit_end_index;
+            data[byte_end_index] = (byte & bit_mask) | (value & ~bit_mask);
+        }
     }
 }
 
@@ -138,21 +143,27 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
                 size_t byte_end_index = pixel_end_index >> 3;
                 size_t bit_end_index = pixel_end_index & 7;
 
-                if (bit_index) {
+                if (byte_index == byte_end_index) {
                     uint8_t byte = frame_data[byte_index];
-                    uint8_t bit_mask = 0xFF >> bit_index;
+                    uint8_t bit_mask = (0xFF >> bit_index) & ~(0xFF >> bit_end_index);
                     frame_data[byte_index] = (byte & ~bit_mask) | (~byte & bit_mask);
-                    byte_index += 1;
-                }
+                } else {
+                    if (bit_index) {
+                        uint8_t byte = frame_data[byte_index];
+                        uint8_t bit_mask = 0xFF >> bit_index;
+                        frame_data[byte_index] = (byte & ~bit_mask) | (~byte & bit_mask);
+                        byte_index += 1;
+                    }
 
-                for (size_t index = byte_index; index < byte_end_index; ++ index) {
-                    frame_data[byte_index] = ~frame_data[byte_index];
-                }
+                    for (size_t index = byte_index; index < byte_end_index; ++ index) {
+                        frame_data[byte_index] = ~frame_data[byte_index];
+                    }
 
-                if (bit_end_index) {
-                    uint8_t byte = frame_data[byte_end_index];
-                    uint8_t bit_mask = 0xFF >> bit_end_index;
-                    frame_data[byte_end_index] = (byte & bit_mask) | (~byte & ~bit_mask);
+                    if (bit_end_index) {
+                        uint8_t byte = frame_data[byte_end_index];
+                        uint8_t bit_mask = 0xFF >> bit_end_index;
+                        frame_data[byte_end_index] = (byte & bit_mask) | (~byte & ~bit_mask);
+                    }
                 }
                 break;
             }

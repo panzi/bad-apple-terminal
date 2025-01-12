@@ -19,7 +19,8 @@ const struct TestEncodeRLE tests[] = {
 ''')
 
         buf = bytearray()
-        max_length = 480 * 360
+        #max_length = 480 * 360
+        max_length = 528416
         for length in range(1, max_length + 1):
             buf.clear()
             encode_rle(0, length, buf)

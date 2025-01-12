@@ -50,7 +50,7 @@ size_t compr_cmd_decode(const uint8_t *data, size_t size, struct ComprCmd *cmd) 
             }
             assert(index <= 2);
             byte = data[index];
-            length |= ((uint32_t)(byte & 0x7F) + 1) << shift;
+            length += ((uint32_t)(byte & 0x7F) + 1) << shift;
             shift += 7;
             index += 1;
         } while (byte & 0x80);

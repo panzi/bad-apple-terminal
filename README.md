@@ -56,7 +56,7 @@ First there are 4 different operations, encoded in 2 bits:
 Followed by a length, that is encoded as a variable length integer a little bit
 like UTF-8. In the first byte the 6th bit indicates continuation and in any
 further byte the 8th bit does it. The other bits are the payload, but since I
-never encode a length of 0 all zeros represent 1. The least sigificant bits are
+never encode a length of 0 all zeros represent 1. The least significant bits are
 stored first, similar to little endian encoding.
 
 | Byte 1     | Byte 2     | Byte 3     |
@@ -110,7 +110,7 @@ def encode_rle(cmd: int, length: int, buf: bytearray) -> None:
 Decoding these lengths gave me a little bit of trouble until I realized that
 I have to use addition instead of bitwise or while decoding because of the + 1
 possibly overflowing. In an bitwise or that overlapping value would be just
-lost or in any case not prodice the right result.
+lost or in any case not produce the right result.
 
 ```C
 size_t compr_cmd_decode(const uint8_t *data, size_t size, struct ComprCmd *cmd) {
@@ -158,7 +158,7 @@ where I scan for differences I do that by simply linearly scanning through the
 pixels. I don't do any segmentation or anything like that, meaning this could
 all be more efficient. It renders smoothly on my machine, so that's good
 enough for me, but the executable is a bit big. A stripped release build is
-10 MiB, while the original video, which isn't 1-bit but grayscale (stored in
+10 MiB, while the original video, which isn't 1-bit but gray-scale (stored in
 an RGB video) and includes the music, is only 6.7 MiB.
 
 I suspect any further compression schemes would be significantly more complex.

@@ -171,7 +171,7 @@ MiB, so at least my file is smaller than that.
 Anyway, here is a video of the result with me zooming in and out, showing how
 it responds to that:
 
-[![Video of this thing running in a terminal]()](https://www.youtube.com/watch?v=lDLFhQTFcTk)
+[![Video of this thing running in a terminal](https://i3.ytimg.com/vi/lDLFhQTFcTk/maxresdefault.jpg)](https://www.youtube.com/watch?v=lDLFhQTFcTk)
 
 I used [Alacritty](https://alacritty.org/) for this video. Normally I use
 [Konsole](https://konsole.kde.org/), and this of course also runs in that, but
@@ -181,7 +181,7 @@ picture.
 It also kinda works on the Linux TTY on a 4k monitor using a small font, here
 with the `devault8x16` font:
 
-[![Video of this thing running in the Linux TTY]()]()
+[![Video of this thing running in the Linux TTY](https://i3.ytimg.com/vi/XCI_WkTi5vc/maxresdefault.jpg)](https://www.youtube.com/watch?v=XCI_WkTi5vc)
 
 Sadly there are not TTY console fonts on my machine that support the needed
 symbols for legacy computing. But even so it's only weird edges and still

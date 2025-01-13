@@ -13,6 +13,18 @@ Apple!!](https://knowyourmeme.com/memes/bad-apple) in vim using regular
 expressions! (It's the same Nolen Royalty who made [One Million
 Checkboxes](https://eieio.games/blog/one-million-checkboxes/).)
 
+## Run this program
+
+```bash
+git clone git@github.com:panzi/bad-apple-terminal.git
+cd bad-apple-terminal
+make DEBUG=OFF run
+```
+
+This needs [yt-dlp](https://github.com/yt-dlp/yt-dlp) and Python with
+[Pillow](https://pypi.org/project/pillow/) to download the original animation
+and generate the C program, which will then be compiled and executed.
+
 ## Rendering Pixels on the Terminal
 
 Since that video is black and white, I thought that is finally the perfect

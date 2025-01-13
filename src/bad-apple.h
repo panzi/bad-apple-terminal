@@ -44,8 +44,8 @@ static inline bool bwimage_get_pixel(const struct BWImage *image, uint32_t x, ui
 }
 
 bool bwimage_decompress(const struct BWImage *prev_frame, const struct CompressedFrame *compressed, struct BWImage *frame);
-void bwimage_render_ansi_diff(const struct BWImage *prev_frame, const struct BWImage *frame);
-void bwimage_render_ansi_full(const struct BWImage *frame);
+void bwimage_render_ansi_diff(const struct BWImage *prev_frame, const struct BWImage *frame, uint32_t term_width, uint32_t term_height);
+void bwimage_render_ansi_full(const struct BWImage *frame, uint32_t term_width, uint32_t term_height);
 
 #define bwimage_nbytes(width, height) (((size_t)(width) * (size_t)(height) + 7) / 8)
 

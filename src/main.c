@@ -4,6 +4,7 @@
 #include <time.h>
 #include <signal.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/ioctl.h>
 
 #include "bad-apple.h"
@@ -22,6 +23,7 @@ static void reset_term() {
     // CSI ?  7 h     Auto-Wrap Mode (DECAWM), VT100
     // CSI ? 25 h     Show cursor (DECTCEM), VT220
     printf("\x1B[0m\x1B[?25h\x1B[?7h\n");
+    fflush(stdout);
 }
 
 static void singal_handler(int sig) {
@@ -54,20 +56,36 @@ static inline struct timespec timespec_sub(const struct timespec time1, const st
     return diff;
 }
 
+#define STDOUT_BUF_SIZE 1048576
+
 int main(int argc, char *argv[]) {
     int status = 0;
 
+#if 0
     fprintf(stderr, "bad_apple_frames: 0x%zx\n", (uintptr_t)bad_apple_frames);
     fprintf(stderr, "bad_apple_frame_count: %zu\n", bad_apple_frame_count);
     fprintf(stderr, "bad_apple_width: %u\n", bad_apple_width);
     fprintf(stderr, "bad_apple_height: %u\n", bad_apple_height);
     fprintf(stderr, "bad_apple_fps: %lf\n", bad_apple_fps);
+#endif
 
+    char *stdout_buf = malloc(STDOUT_BUF_SIZE);
     struct BWImage frame1 = bwimage_new(bad_apple_width, bad_apple_height);
     struct BWImage frame2 = bwimage_new(bad_apple_width, bad_apple_height);
 
+    if (stdout_buf == NULL) {
+        perror("void *stdout_buf = malloc(1048576);");
+        goto error;
+    }
+
     if (frame1.data == NULL || frame2.data == NULL) {
         perror("bwimage_new(bad_apple_width, bad_apple_height)");
+        goto error;
+    }
+
+    // be sure that the whole frame is buffered before it is sent to the terminal
+    if (setvbuf(stdout, stdout_buf, _IOFBF, STDOUT_BUF_SIZE) != 0) {
+        perror("setvbuf(stdout, stdout_buf, _IOFBF, STDOUT_BUF_SIZE)");
         goto error;
     }
 
@@ -132,9 +150,13 @@ int main(int argc, char *argv[]) {
         uint32_t term_width;
         uint32_t term_height;
         uint32_t x = 0, y = 0;
+        uint32_t canvas_width  = current_frame->width;
+        uint32_t canvas_height = current_frame->height;
         if (get_term_size(&term_size) == 0) {
             term_width  = (uint32_t)term_size.ws_col * 2;
             term_height = (uint32_t)term_size.ws_row * 3;
+            canvas_width  = term_width;
+            canvas_height = term_height;
 
             if (term_width != old_term_width || term_height != old_term_height) {
                 full_frame = true;
@@ -143,25 +165,29 @@ int main(int argc, char *argv[]) {
 
             if (bad_apple_width < term_width) {
                 x = (term_width - bad_apple_width) / 2;
+                canvas_width -= x;
+            } else if (term_size.ws_col > 0) {
+                // fix glitchy behavior when rendering up to the the screen edge
+                // it somehow messes with the cursor location
+                canvas_width = ((uint32_t)term_size.ws_col - 1) * 2;
             }
 
             if (bad_apple_height < term_height) {
                 y = (term_height - bad_apple_height) / 2;
+                canvas_height -= y;
             }
 
             old_term_width = term_width;
             old_term_height = term_height;
         }
 
-        // TODO: crop image?
         printf("\x1B[%u;%uH", (y / 3) + 1, (x / 2) + 1);
 
-        if (full_frame || true) {
-            bwimage_render_ansi_full(current_frame);
+        if (full_frame) {
+            bwimage_render_ansi_full(current_frame, canvas_width, canvas_height);
             full_frame = false;
         } else {
-            // TODO
-            bwimage_render_ansi_diff(prev_frame, current_frame);
+            bwimage_render_ansi_diff(prev_frame, current_frame, canvas_width, canvas_height);
         }
 
         fflush(stdout);
@@ -186,10 +212,14 @@ error:
     status = 1;
 
 cleanup:
+    reset_term();
+
     bwimage_free(&frame1);
     bwimage_free(&frame2);
 
-    reset_term();
+    if (stdout_buf != NULL) {
+        free(stdout_buf);
+    }
 
     return status;
 }

@@ -180,6 +180,44 @@ bool bwimage_decompress(const struct BWImage *prev_frame, const struct Compresse
     return true;
 }
 
+static inline void move_cursor(uint32_t curr_col, uint32_t curr_row, uint32_t col, uint32_t row) {
+    if (col != curr_col) {
+        if (col > curr_col) {
+            uint32_t dx = col - curr_col;
+            if (dx == 1) {
+                printf("\x1B[C");
+            } else {
+                printf("\x1B[%dC", dx);
+            }
+        } else {
+            uint32_t dx = curr_col - col;
+            if (dx == 1) {
+                printf("\x1B[D");
+            } else {
+                printf("\x1B[%dD", dx);
+            }
+        }
+    }
+
+    if (row != curr_row) {
+        if (row > curr_row) {
+            uint32_t dy = row - curr_row;
+            if (dy == 1) {
+                printf("\x1B[B");
+            } else {
+                printf("\x1B[%dB", dy);
+            }
+        } else {
+            uint32_t dy = curr_row - row;
+            if (dy == 1) {
+                printf("\x1B[A");
+            } else {
+                printf("\x1B[%dA", dy);
+            }
+        }
+    }
+}
+
 static const char *bwimage_patterns[] = {
     " ", "🬀", "🬁", "🬂", "🬃", "🬄", "🬅", "🬆", "🬇", "🬈", "🬉", "🬊", "🬋", "🬌", "🬍",
     "🬎", "🬏", "🬐", "🬑", "🬒", "🬓", "▌", "🬔", "🬕", "🬖", "🬗", "🬘", "🬙", "🬚", "🬛",
@@ -188,18 +226,82 @@ static const char *bwimage_patterns[] = {
     "🬹", "🬺", "🬻", "█",
 };
 
-void bwimage_render_ansi_diff(const struct BWImage *prev_frame, const struct BWImage *frame) {
-    (void)bwimage_patterns;
-
-    uint32_t width = frame->width;
+void bwimage_render_ansi_diff(const struct BWImage *prev_frame, const struct BWImage *frame, uint32_t term_width, uint32_t term_height) {
+    uint32_t width  = frame->width;
     uint32_t height = frame->height;
-    for (uint32_t y = 0; y < height; y += 3) {
-        for (uint32_t x = 0; x < width; x += 2) {
+    uint32_t curr_col = 0;
+    uint32_t curr_row = 0;
+    uint32_t min_width  = width  < term_width  ? width  : term_width;
+    uint32_t min_height = height < term_height ? height : term_height;
+
+    printf("\x1B[38;2;255;255;255m\x1B[48;2;0;0;0m");
+    for (uint32_t y = 0; y < min_height; y += 3) {
+        uint32_t row = y / 3;
+        uint32_t y2 = y + 1;
+        uint32_t y3 = y + 2;
+
+        for (uint32_t x = 0; x < min_width; x += 2) {
+            uint32_t col = x / 2;
+            uint32_t x2 = x + 1;
+            uint32_t pattern_bits = (uint32_t)bwimage_get_pixel(frame, x, y);
+            uint32_t prev_pattern_bits = (uint32_t)bwimage_get_pixel(prev_frame, x, y);
+
+            if (x2 < width) {
+                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y) << 1;
+                prev_pattern_bits |= (uint32_t)bwimage_get_pixel(prev_frame, x2, y) << 1;
+            }
+
+            if (y2 < height) {
+                pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y2) << 2;
+                prev_pattern_bits |= (uint32_t)bwimage_get_pixel(prev_frame, x, y2) << 2;
+
+                if (x2 < width) {
+                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y2) << 3;
+                    prev_pattern_bits |= (uint32_t)bwimage_get_pixel(prev_frame, x2, y2) << 3;
+                }
+
+                if (y3 < height) {
+                    pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x, y3) << 4;
+                    prev_pattern_bits |= (uint32_t)bwimage_get_pixel(prev_frame, x, y3) << 4;
+
+                    if (x2 < width) {
+                        pattern_bits |= (uint32_t)bwimage_get_pixel(frame, x2, y3) << 5;
+                        prev_pattern_bits |= (uint32_t)bwimage_get_pixel(prev_frame, x2, y3) << 5;
+                    }
+                }
+            }
+
+            if (prev_pattern_bits != pattern_bits) {
+                move_cursor(curr_col, curr_row, col, row);
+                const char *pattern = bwimage_patterns[(size_t)pattern_bits];
+                fwrite(pattern, 1, strlen(pattern), stdout);
+
+                curr_col = col + 1;
+                curr_row = row;
+            }
         }
     }
-    fprintf(stderr, "bwimage_render_ansi_diff(): not implemented\n");
-    assert(0); // not implemented
-    exit(1);
+    printf("\x1B[0m");
+
+    // Just to ensure that the cursor is at the correct position after
+    // the image is rendered or when hitting Ctrl+C during sleep.
+    uint32_t dx = ((width + 1) / 2) - curr_col;
+    if (dx > 0) {
+        if (dx == 1) {
+            printf("\x1B[C");
+        } else {
+            printf("\x1B[%dC", dx);
+        }
+    }
+
+    uint32_t dy = ((height + 2) / 3) - curr_row - 1;
+    if (dy > 0) {
+        if (dy == 1) {
+            printf("\x1B[B");
+        } else {
+            printf("\x1B[%dB", dy);
+        }
+    }
 }
 
 // bit layout
@@ -208,20 +310,22 @@ void bwimage_render_ansi_diff(const struct BWImage *prev_frame, const struct BWI
 // 5 6
 
 #if 1
-void bwimage_render_ansi_full(const struct BWImage *frame) {
+void bwimage_render_ansi_full(const struct BWImage *frame, uint32_t term_width, uint32_t term_height) {
     uint32_t width = frame->width;
     uint32_t height = frame->height;
     unsigned int line_len = (width + 1) / 2;
+    uint32_t min_width  = width  < term_width  ? width  : term_width;
+    uint32_t min_height = height < term_height ? height : term_height;
 
     printf("\x1B[38;2;255;255;255m\x1B[48;2;0;0;0m");
-    for (uint32_t y = 0; y < height; y += 3) {
+    for (uint32_t y = 0; y < min_height; y += 3) {
         uint32_t y2 = y + 1;
         uint32_t y3 = y + 2;
 
         if (y > 0) {
             printf("\x1B[%uD\x1B[1B", line_len);
         }
-        for (uint32_t x = 0; x < width; x += 2) {
+        for (uint32_t x = 0; x < min_width; x += 2) {
             uint32_t x2 = x + 1;
             uint32_t pattern_bits = (uint32_t)bwimage_get_pixel(frame, x, y);
 

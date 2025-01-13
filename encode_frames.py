@@ -3,7 +3,7 @@
 from typing import Optional
 import PIL.Image
 
-# bit 1-2
+# bit 8-7
 # 00 ... skip
 # 01 ... white
 # 10 ... black
@@ -22,6 +22,7 @@ import PIL.Image
 def encode_rle(cmd: int, length: int, buf: bytearray) -> None:
     if length == 0:
         return
+
     length -= 1
     byte = (cmd << 6) | (length & 0b1_1111)
     length >>= 5

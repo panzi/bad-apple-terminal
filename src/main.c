@@ -9,6 +9,8 @@
 
 #include "bad-apple.h"
 
+volatile bool sigint_called;
+
 static void reset_term() {
     struct termios ttystate;
     int res = tcgetattr(STDIN_FILENO, &ttystate);
@@ -27,7 +29,7 @@ static void reset_term() {
 }
 
 static void singal_handler(int sig) {
-    reset_term();
+    sigint_called = true;
 }
 
 static inline int get_term_size(struct winsize *ws) {
@@ -201,7 +203,11 @@ int main(int argc, char *argv[]) {
         struct timespec rem_duration = timespec_sub(frame_duration, timespec_sub(frame_end_ts, frame_start_ts));
 
         if (rem_duration.tv_sec >= 0 && nanosleep(&rem_duration, NULL) != 0) {
-            perror("nanosleep(&rem_duration, NULL)");
+            if (sigint_called) {
+                break;
+            } else {
+                perror("nanosleep(&rem_duration, NULL)");
+            }
             goto error;
         }
     }

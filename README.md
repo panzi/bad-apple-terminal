@@ -21,9 +21,10 @@ cd bad-apple-terminal
 make DEBUG=OFF run
 ```
 
-This needs [yt-dlp](https://github.com/yt-dlp/yt-dlp) and Python with
-[Pillow](https://pypi.org/project/pillow/) to download the original animation
-and generate the C program, which will then be compiled and executed.
+This needs [yt-dlp](https://github.com/yt-dlp/yt-dlp), to download the original
+animation [ffmpeg](https://www.ffmpeg.org/) to convert the video into its
+frames, and Python with [Pillow](https://pypi.org/project/pillow/) to generate
+the C program, which will then be compiled and executed.
 
 ## Rendering Pixels on the Terminal
 

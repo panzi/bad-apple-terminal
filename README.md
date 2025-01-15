@@ -40,12 +40,13 @@ allow to display 6 pixels per character:
 | U+1FB2x | `🬠` | `🬡` | `🬢` | `🬣` | `🬤` | `🬥` | `🬦` | `🬧` | `🬨` | `🬩` | `🬪` | `🬫` | `🬬` | `🬭` | `🬮` | `🬯` |
 | U+1FB3x | `🬰` | `🬱` | `🬲` | `🬳` | `🬴` | `🬵` | `🬶` | `🬷` | `🬸` | `🬹` | `🬺` | `🬻` | `🬼` | `🬽` | `🬾` | `🬿` |
 
-While these pixels aren't quite square, the actual form factor depends on your
-terminal font anyway. It often even varies between font sizes of the same font.
-So I just said it's close enough. The picture might be a bit stretched.
+Those pixels aren't square. The actual form factor depends on your terminal
+font, it often even varies between font sizes of the same font. I assumed that
+a character has an aspect ratio of 1:2 and squashed the video in height
+accordingly.
 
 Symbols that could display 2x8 pixels would be closer to square. There are
-[Brialle Patterns](https://en.wikipedia.org/wiki/Braille_Patterns) in Unicode
+[Braille Patterns](https://en.wikipedia.org/wiki/Braille_Patterns) in Unicode
 that are basically that: `⠁`, `⠊`, `⣜`, `⣿`, etc. But the downside with those
 is that there is a gap between the "pixels" and some fonts also render the
 empty "pixels" as empty circles. Side-note: A cool example that uses braille
@@ -121,8 +122,8 @@ def encode_rle(cmd: int, length: int, buf: bytearray) -> None:
 ```
 
 Decoding these lengths gave me a little bit of trouble until I realized that
-I have to use addition instead of bitwise or while decoding because of the + 1
-possibly overflowing. In an bitwise or that overlapping value would be just
+I have to use addition instead of bit-wise or while decoding because of the + 1
+possibly overflowing. In an bit-wise or that overlapping value would be just
 lost or in any case not produce the right result.
 
 ```C

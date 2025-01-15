@@ -2,6 +2,7 @@
 
 from typing import Optional
 import PIL.Image
+from PIL.Image import Resampling
 
 # bit 8-7
 # 00 ... skip
@@ -57,13 +58,21 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
         img = PIL.Image.open(f'build/frames/frame0001.png')
         width, height = img.size
 
+        # Assume characters in the TTY have an aspect ratio of 1:2.
+        # I render 2x3 pixels per character. Meaning there are 3 pixels in the
+        # height of a character, but it should be 4. So we need to squish those
+        # 4 into the 3.
+        new_width = width
+        new_height = round(height * 3 / 4)
+        new_size = new_width, new_height
+
         #width = 480
         #height = 360
         fps = 30.0003
         frame_count = 6572
         #frame_count = 256
         prev_frame: Optional[list[bool]] = None
-        frame_len = width * height
+        frame_len = new_width * new_height
         for nr in range(1, frame_count + 1):
             print(f"frame {nr}")
             filename = f'build/frames/frame{nr:04d}.png'
@@ -72,6 +81,7 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
             if frame_width != width or frame_height != height:
                 raise ValueError(f"frame_width: {frame_width}, frame_height: {frame_height} != width: {width}, height: {height}")
 
+            img = img.resize(new_size, Resampling.LANCZOS)
             frame: list[bool] = [
                 value >= 64
                 for value in img.convert('L').getdata()
@@ -139,8 +149,8 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
         fp.write(f'''\
 }};
 const size_t bad_apple_frame_count = {frame_count};
-const uint32_t bad_apple_width = {width};
-const uint32_t bad_apple_height = {height};
+const uint32_t bad_apple_width = {new_width};
+const uint32_t bad_apple_height = {new_height};
 const double bad_apple_fps = {fps};
 ''')
 

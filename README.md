@@ -185,7 +185,7 @@ MiB, so at least my file is smaller than that.
 Anyway, here is a video of the result with me zooming in and out, showing how
 it responds to that:
 
-[![Video of this thing running in a terminal](https://i3.ytimg.com/vi/lDLFhQTFcTk/maxresdefault.jpg)](https://www.youtube.com/watch?v=lDLFhQTFcTk)
+[![Video of this thing running in a terminal](https://i3.ytimg.com/vi/WerXbHt62E8/maxresdefault.jpg)](https://www.youtube.com/watch?v=WerXbHt62E8)
 
 I used [Alacritty](https://alacritty.org/) for this video. Normally I use
 [Konsole](https://konsole.kde.org/), and this of course also runs in that, but

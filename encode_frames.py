@@ -130,7 +130,7 @@ const struct CompressedFrame *bad_apple_frames = (struct CompressedFrame[]){
                         while (i := index + flip_len) < frame_len and frame[i] != prev_frame[i]:
                             flip_len += 1
 
-                        if repeat_len > flip_len:
+                        if repeat_len >= flip_len:
                             if pixel:
                                 encode_rle(WHITE, repeat_len, frame_bytes)
                             else:

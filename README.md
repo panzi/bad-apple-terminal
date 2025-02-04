@@ -206,6 +206,8 @@ works otherwise.
 I've mentioned other things that I did with Unicode on the terminal lately.
 In case you're interested, here is a list of those things:
 
+- [Progress Pride Bar](https://github.com/panzi/progress-pride-bar) (Rust): A
+  progress bar for the terminal that looks like the progress pride flag.
 - [Term Flags](https://github.com/panzi/python-term-flags) (Python): A primitive
   sytem to render simple scalable flags on the terminal using Unicode.
 - [Color Cycling](https://github.com/panzi/rust-color-cycle) (Rust): This is a
